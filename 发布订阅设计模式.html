@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+
+		<button id='button1'>添加监听事件</button>
+		&nbsp;
+		<button id='button2'>删除监听事件</button>
+	</body>
+	
+	<script type="text/javascript">
+		class Observe {
+			constructor(){
+				this.message={}
+			}
+			
+			$on(type,fn){
+				if(this.message[type]){
+					this.message[type].push(fn)
+				}else{
+					this.message[type]=[fn]
+				}
+
+				console.log('on后message事件',this.message)
+			}
+			
+			$emit(type,data){
+				if(!this.message[type]){
+					throw new Error('未订阅该事件：'+type);
+					return
+				}
+				this.message[type].forEach((fnItem)=>{
+					fnItem(data)
+				})
+			}
+			
+			$off(type,fn){
+				if(!this.message[type]) return;
+				if(!fn){
+					delete this.message[type]
+				}else{
+
+					var tempObj={...this.message}
+					this.message=tempObj[type].filter((item)=>{
+						return item!=fn
+					})
+				}
+				console.log('off后message事件',this.message)
+			}
+		}
+		
+		var ob=new Observe()
+		ob.$on('eventA',function task1(data){
+			console.log('task1参数',data)
+		})
+		ob.$on('eventA',function task2(data){
+			console.log('task2参数',data)
+		})
+		ob.$emit('eventA','事件参数')
+		
+		ob.$emit('eventA','报错')
+		function task3(data){
+			console.log('task1参数',data)
+		}
+		document.querySelector('#button1').onclick=()=>{
+			ob.$on('eventA',task3)
+		}
+
+		document.querySelector('#button2').onclick=()=>{
+			ob.$off('eventA',task3)
+		}
+		
+	</script>
+</html>
