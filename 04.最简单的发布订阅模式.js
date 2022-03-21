@@ -1,4 +1,4 @@
-// 收集依赖/收集订阅者
+// 收集依赖，收集订阅者
 class Dep {
   constructor() {
     // 这个 subs 数组，用来存放所有订阅者的信息
@@ -10,7 +10,7 @@ class Dep {
     this.subs.push(watcher)
   }
 
-  // 发布通知的方法
+  // 发布通知的方法，挨个调用
   notify() {
     this.subs.forEach((watcher) => watcher.update())
   }

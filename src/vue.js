@@ -43,8 +43,7 @@ function Observe(obj) {
       enumerable: true,
       configurable: true,
       get() {
-        // 只要执行了下面这一行，那么刚才 new 的 Watcher 实例，
-        // 就被放到了 dep.subs 这个数组中了
+        // 只要执行了下面这一行，那么刚才 new 的 Watcher 实例，就被放到了 dep.subs 这个数组中了
         Dep.target && dep.addSub(Dep.target)
         return value
       },
@@ -62,36 +61,34 @@ function Observe(obj) {
 function Compile(el, vm) {
   // 获取 el 对应的 DOM 元素
   vm.$el = document.querySelector(el)
-
-  // 创建文档碎片，提高 DOM 操作的性能
+  
+  // 取出dom节点方法文档碎片里，此循环之后时页面无dom节点--------------
   const fragment = document.createDocumentFragment()
-
   while ((childNode = vm.$el.firstChild)) {
     fragment.appendChild(childNode)
   }
-
+  
   // 这步关键进行模板编译
   replace(fragment)
-
   vm.$el.appendChild(fragment)
-
   // 负责对 DOM 模板进行编译的方法
   function replace(node) {
     // 定义匹配插值表达式的正则
     const regMustache = /\{\{\s*(\S+)\s*\}\}/
-
     // 证明当前的 node 节点是一个文本子节点，需要进行正则的替换
     if (node.nodeType === 3) {
       // 注意：文本子节点，也是一个 DOM 对象，如果要获取文本子节点的字符串内容，需要调用 textContent 属性获取
       const text = node.textContent
-      // 进行字符串的正则匹配与提取
+      // 正则截取{{}}之间的内容
       const execResult = regMustache.exec(text)
-      console.log(execResult)
+      // console.log('证则提取的结果——————————————————',execResult)
       if (execResult) {
         const value = execResult[1].split('.').reduce((newObj, k) => newObj[k], vm)
+        //把{{xxx}}部分替换成具体值，只是首次
         node.textContent = text.replace(regMustache, value)
         // 在这个时候，创建 Watcher 类的实例，因为只有这个时候watcher知道怎么更新数据
         new Watcher(vm, execResult[1], (newValue) => {
+          console.log('——————————————new了一个'+execResult[1]+'的watcher——————————————————')
           node.textContent = text.replace(regMustache, newValue)
         })
       }
@@ -110,7 +107,7 @@ function Compile(el, vm) {
         const value = expStr.split('.').reduce((newObj, k) => newObj[k], vm)
         node.value = value
 
-        // 创建 Watcher 的实例
+        // 也只有这个时候了创建 Watcher 的实例
         new Watcher(vm, expStr, (newValue) => {
           node.value = newValue
         })
@@ -125,7 +122,7 @@ function Compile(el, vm) {
       }
     }
 
-    // 证明不是文本节点，可能是一个DOM元素，需要进行递归处理
+    // 递归 证明不是文本节点，可能是一个DOM元素，需要进行递归处理
     node.childNodes.forEach((child) => replace(child))
   }
 }
@@ -162,7 +159,7 @@ class Watcher {
     this.key = key
     this.cb = cb
 
-    // ↓↓↓↓↓↓ 下面三行代码，负责把创建的 Watcher 实例存到 Dep 实例的 subs 数组中 ↓↓↓↓↓↓
+    // 取值的时候调用 set方法，负责把创建的 Watcher 实例存到 Dep 实例的 subs 数组中  
     Dep.target = this
     key.split('.').reduce((newObj, k) => newObj[k], vm)
     Dep.target = null
